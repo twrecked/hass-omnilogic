@@ -1,5 +1,4 @@
 """The Omnilogic integration."""
-
 import logging
 
 from omnilogic import LoginException, OmniLogic, OmniLogicException
@@ -21,7 +20,7 @@ from .coordinator import OmniLogicUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.SENSOR, Platform.SWITCH]
+PLATFORMS = [Platform.SENSOR, Platform.SWITCH, Platform.BINARY_SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

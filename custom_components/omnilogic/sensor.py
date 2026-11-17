@@ -99,6 +99,8 @@ class OmniLogicTemperatureSensor(OmnilogicSensor):
     def native_value(self):
         """Return the state for the temperature sensor."""
         sensor_data = self.coordinator.data[self._item_id][self._state_key]
+        if int(sensor_data) > 127:
+            sensor_data = str(256 - int(sensor_data))
 
         hayward_state = sensor_data
         hayward_unit_of_measure = UnitOfTemperature.FAHRENHEIT
@@ -312,6 +314,20 @@ SENSOR_TYPES: dict[tuple[int, str], list[dict[str, Any]]] = {
             "entity_classes": {"avgSaltLevel": OmniLogicSaltLevelSensor},
             "name": "Salt Level",
             "kind": "salt_level",
+            "device_class": None,
+            "icon": "mdi:gauge",
+            "unit": CONCENTRATION_PARTS_PER_MILLION,
+            "guard_condition": [
+                {
+                    "Shared-Type": "BOW_SHARED_EQUIPMENT",
+                    "status": "0",
+                },
+            ],
+        },
+        {
+            "entity_classes": {"instantSaltLevel": OmniLogicSaltLevelSensor},
+            "name": "Instant Salt Level",
+            "kind": "instant_salt_level",
             "device_class": None,
             "icon": "mdi:gauge",
             "unit": CONCENTRATION_PARTS_PER_MILLION,
