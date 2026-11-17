@@ -7,5 +7,5 @@
   "iot_class": "cloud_polling",
   "loggers": ["config", "omnilogic"],
   "requirements": ["omnilogic==0.4.5"],
-  "version": "2023.08.05"
+  "version": "0.1.0"
 }
