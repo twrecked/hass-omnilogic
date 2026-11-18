@@ -25,10 +25,11 @@ Compared to core Home Assistant OmniLogic:
 
 ### Manual Installation
 
-1. Copy the `custom_components/omnilogic` folder into your Home Assistant configuration directory under `custom_components/`.
+1. Use the install script to copy the files to your Home Assistant config directory:
    ```bash
-   cp -r custom_components/omnilogic <path_to_ha_config>/custom_components/
+   ./scripts/install go <path_to_ha_config>
    ```
+   *(Running `./scripts/install <path_to_ha_config>` without `go` performs a dry run).*
 2. Restart Home Assistant.
 
 ## Keeping in Sync with Upstream

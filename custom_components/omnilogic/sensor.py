@@ -5,13 +5,21 @@ from typing import Any
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    CONCENTRATION_PARTS_PER_MILLION,
-    PERCENTAGE,
     UnitOfElectricPotential,
     UnitOfMass,
     UnitOfTemperature,
     UnitOfVolume,
 )
+try:
+    from homeassistant.const import UnitOfRatio
+
+    PERCENTAGE_UNIT = UnitOfRatio.PERCENTAGE
+    PARTS_PER_MILLION_UNIT = UnitOfRatio.PARTS_PER_MILLION
+except ImportError:
+    from homeassistant.const import CONCENTRATION_PARTS_PER_MILLION, PERCENTAGE
+
+    PERCENTAGE_UNIT = PERCENTAGE
+    PARTS_PER_MILLION_UNIT = CONCENTRATION_PARTS_PER_MILLION
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -137,7 +145,7 @@ class OmniLogicPumpSpeedSensor(OmnilogicSensor):
         pump_speed = self.coordinator.data[self._item_id][self._state_key]
 
         if pump_type == "VARIABLE":
-            self._attr_native_unit_of_measurement = PERCENTAGE
+            self._attr_native_unit_of_measurement = PERCENTAGE_UNIT
             state = pump_speed
         elif pump_type == "DUAL":
             self._attr_native_unit_of_measurement = None
@@ -273,7 +281,7 @@ SENSOR_TYPES: dict[tuple[int, str], list[dict[str, Any]]] = {
             "kind": "filter_pump_speed",
             "device_class": None,
             "icon": "mdi:speedometer",
-            "unit": PERCENTAGE,
+            "unit": PERCENTAGE_UNIT,
             "guard_condition": [
                 {"Filter-Type": "FMT_SINGLE_SPEED"},
             ],
@@ -286,7 +294,7 @@ SENSOR_TYPES: dict[tuple[int, str], list[dict[str, Any]]] = {
             "kind": "pump_speed",
             "device_class": None,
             "icon": "mdi:speedometer",
-            "unit": PERCENTAGE,
+            "unit": PERCENTAGE_UNIT,
             "guard_condition": [
                 {"Type": "PMP_SINGLE_SPEED"},
             ],
@@ -299,7 +307,7 @@ SENSOR_TYPES: dict[tuple[int, str], list[dict[str, Any]]] = {
             "kind": "chlorinator",
             "device_class": None,
             "icon": "mdi:gauge",
-            "unit": PERCENTAGE,
+            "unit": PERCENTAGE_UNIT,
             "guard_condition": [
                 {
                     "Shared-Type": "BOW_SHARED_EQUIPMENT",
@@ -316,7 +324,7 @@ SENSOR_TYPES: dict[tuple[int, str], list[dict[str, Any]]] = {
             "kind": "salt_level",
             "device_class": None,
             "icon": "mdi:gauge",
-            "unit": CONCENTRATION_PARTS_PER_MILLION,
+            "unit": PARTS_PER_MILLION_UNIT,
             "guard_condition": [
                 {
                     "Shared-Type": "BOW_SHARED_EQUIPMENT",
@@ -330,7 +338,7 @@ SENSOR_TYPES: dict[tuple[int, str], list[dict[str, Any]]] = {
             "kind": "instant_salt_level",
             "device_class": None,
             "icon": "mdi:gauge",
-            "unit": CONCENTRATION_PARTS_PER_MILLION,
+            "unit": PARTS_PER_MILLION_UNIT,
             "guard_condition": [
                 {
                     "Shared-Type": "BOW_SHARED_EQUIPMENT",
