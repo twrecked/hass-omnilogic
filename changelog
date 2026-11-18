@@ -1,0 +1,15 @@
+0.1.1:
+  Add token re-login recovery when coordinator update fails.
+  Bump omnilogic library dependency to 0.4.9.
+  Move set_pump_speed action registration to dedicated services module.
+  Migrate sensors to UnitOfRatio enums with backward-compatible fallback.
+  Add ConfigEntryError handling for setup login failures.
+  Add single_config_entry manifest flag and update icons.json schema.
+  Add scripts/install helper script.
+0.1.0:
+  Initial custom release.
+  Add heater active state binary sensor (heaterState).
+  Add instant salt level sensor (instantSaltLevel).
+  Add negative/wrap-around temperature sensor fix.
+  Retain user-configurable polling interval in options flow.
+  Add HACS compatibility and upstream sync tooling.
