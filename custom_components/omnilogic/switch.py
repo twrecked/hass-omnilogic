@@ -7,9 +7,10 @@ from omnilogic import OmniLogicException
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .common import OmniLogicEntity, check_guard
+from .common import OmniLogicEntity, OmniLogicOnOffEntity, check_guard
 from .const import COORDINATOR, DOMAIN, PUMP_TYPES
 from .coordinator import OmniLogicUpdateCoordinator
 
@@ -19,7 +20,7 @@ OMNILOGIC_SWITCH_OFF = 7
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    """Set up the light platform."""
+    """Set up the switch platform."""
 
     coordinator: OmniLogicUpdateCoordinator = hass.data[DOMAIN][entry.entry_id][
         COORDINATOR
@@ -37,6 +38,8 @@ async def async_setup_entry(
         for entity_setting in entity_settings:
             entity_classes: dict[str, type] = entity_setting["entity_classes"]
             for state_key, entity_class in entity_classes.items():
+                if item_kind == "Relays" and "relayState" in item:
+                    state_key = "relayState"
                 if check_guard(state_key, item, entity_setting):
                     continue
 
@@ -102,34 +105,28 @@ class OmniLogicSwitch(OmniLogicEntity, SwitchEntity):
         return self._state
 
 
-class OmniLogicRelayControl(OmniLogicSwitch):
+class OmniLogicRelayControl(OmniLogicOnOffEntity, SwitchEntity):
     """Define the OmniLogic Relay entity."""
 
-    async def async_turn_on(self, **kwargs):
+    async def _async_send_command(self, is_on: bool) -> None:
+        """Send the relay command using pool ID zero for backyard relays."""
+        pool_id = int(self._item_id[3]) if len(self._item_id) == 6 else 0
+        try:
+            success = await self.coordinator.api.set_relay_valve(
+                int(self._item_id[1]), pool_id, int(self._item_id[-1]), int(is_on)
+            )
+        except OmniLogicException as error:
+            raise HomeAssistantError("Could not control the OmniLogic relay") from error
+        if not success:
+            raise HomeAssistantError("OmniLogic rejected the relay command")
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the relay."""
-        self._state = True
-        self._last_action = time.time()
-        self.async_write_ha_state()
+        await self._async_set_state(True)
 
-        await self.coordinator.api.set_relay_valve(
-            int(self._item_id[1]),
-            int(self._item_id[3]),
-            int(self._item_id[-1]),
-            1,
-        )
-
-    async def async_turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the relay."""
-        self._state = False
-        self._last_action = time.time()
-        self.async_write_ha_state()
-
-        await self.coordinator.api.set_relay_valve(
-            int(self._item_id[1]),
-            int(self._item_id[3]),
-            int(self._item_id[-1]),
-            0,
-        )
+        await self._async_set_state(False)
 
 
 class OmniLogicPumpControl(OmniLogicSwitch):

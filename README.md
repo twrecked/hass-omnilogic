@@ -11,6 +11,7 @@ Compared to core Home Assistant OmniLogic:
 * **Instant Salt Level Sensor**: Adds instant salt level sensor support.
 * **Temperature Sensor Fixes**: Handles negative temperature values appropriately.
 * **Configurable Polling Interval**: Option to configure the polling interval from integration options.
+* **Native Light Controls**: ColorLogic lights appear as on/off `light` entities. They turn on with Warm White (speed 4, brightness 2) on V2 hardware or Cloud White on V1 hardware. Relay-controlled lights remain `switch` entities.
 
 ## Installation
 

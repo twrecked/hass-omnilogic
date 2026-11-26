@@ -1,3 +1,8 @@
+0.2.0:
+  Add native on/off light entities for ColorLogic V1 and V2 lights.
+  Fix backyard relay addressing and recognize relayState telemetry.
+  Hold accepted light and relay states until polling confirms them or the timeout expires.
+  Allow up to 60 seconds for ColorLogic turn-off confirmation; other commands allow 30 seconds.
 0.1.1:
   Add token re-login recovery when coordinator update fails.
   Bump omnilogic library dependency to 0.4.9.
