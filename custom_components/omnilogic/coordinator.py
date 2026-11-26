@@ -2,6 +2,7 @@
 
 from datetime import timedelta
 import logging
+from time import monotonic
 from typing import Any
 
 from omnilogic import OmniLogic, OmniLogicException
@@ -29,6 +30,7 @@ class OmniLogicUpdateCoordinator(DataUpdateCoordinator[dict[tuple, dict[str, Any
         """Initialize the global Omnilogic data updater."""
         self.api = api
         self.config_entry = config_entry
+        self.telemetry_started_at = 0.0
 
         super().__init__(
             hass=hass,
@@ -39,6 +41,7 @@ class OmniLogicUpdateCoordinator(DataUpdateCoordinator[dict[tuple, dict[str, Any
 
     async def _async_update_data(self):
         """Fetch data from OmniLogic."""
+        started_at = monotonic()
         try:
             data = await self.api.get_telemetry_data()
 
@@ -67,4 +70,6 @@ class OmniLogicUpdateCoordinator(DataUpdateCoordinator[dict[tuple, dict[str, Any
 
             return data
 
-        return get_item_data(data, "Backyard", (), parsed_data)
+        parsed_data = get_item_data(data, "Backyard", (), parsed_data)
+        self.telemetry_started_at = started_at
+        return parsed_data
