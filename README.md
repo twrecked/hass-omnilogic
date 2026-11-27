@@ -33,6 +33,14 @@ Compared to core Home Assistant OmniLogic:
    *(Running `./scripts/install <path_to_ha_config>` without `go` performs a dry run).*
 2. Restart Home Assistant.
 
+## Polling and Light Confirmation
+
+Set the idle polling interval under **Settings → Devices & services → OmniLogic → Configure**. Saving the options reloads the integration. Version `0.2.1` honors the saved interval; earlier releases could fall back to polling every 6 seconds even when a longer interval was configured.
+
+After Hayward accepts a light or relay command, Home Assistant displays the requested state and asks for a refresh. If Hayward hasn't confirmed it yet, the integration shares follow-up polls about every 10 seconds, unless regular polling is already that frequent. These follow-ups stop when all pending commands are confirmed or time out. Turn-on allows 30 seconds; turn-off allows 60 seconds. Changes made directly in the Hayward app are picked up on the next poll.
+
+See the [v0.2.1 release notes](docs/RELEASE_NOTES_v0.2.1.md) for upgrade and verification steps.
+
 ## Keeping in Sync with Upstream
 
 This repository tracks core Home Assistant's `homeassistant/components/omnilogic` component using a vendor `upstream` branch:

@@ -1,6 +1,7 @@
 """Coordinator for the Omnilogic Integration."""
 
-from datetime import timedelta
+from collections.abc import Callable
+from datetime import datetime, timedelta
 import logging
 from time import monotonic
 from typing import Any
@@ -8,12 +9,14 @@ from typing import Any
 from omnilogic import OmniLogic, OmniLogicException
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import ALL_ITEM_KINDS
 
 _LOGGER = logging.getLogger(__name__)
+CONFIRMATION_POLL_INTERVAL = 10
 
 
 class OmniLogicUpdateCoordinator(DataUpdateCoordinator[dict[tuple, dict[str, Any]]]):
@@ -31,6 +34,9 @@ class OmniLogicUpdateCoordinator(DataUpdateCoordinator[dict[tuple, dict[str, Any
         self.api = api
         self.config_entry = config_entry
         self.telemetry_started_at = 0.0
+        self._pending_confirmations: set[tuple] = set()
+        self._cancel_confirmation_poll: Callable[[], None] | None = None
+        self._confirmation_poll_running = False
 
         super().__init__(
             hass=hass,
@@ -38,6 +44,44 @@ class OmniLogicUpdateCoordinator(DataUpdateCoordinator[dict[tuple, dict[str, Any
             name=name,
             update_interval=timedelta(seconds=polling_interval),
         )
+
+    @callback
+    def async_set_confirmation_pending(self, item_id: tuple, pending: bool) -> None:
+        """Share follow-up polling across entities waiting for confirmation."""
+        if pending:
+            self._pending_confirmations.add(item_id)
+            self._async_schedule_confirmation_poll()
+        else:
+            self._pending_confirmations.discard(item_id)
+            if not self._pending_confirmations and self._cancel_confirmation_poll:
+                self._cancel_confirmation_poll()
+                self._cancel_confirmation_poll = None
+
+    @callback
+    def _async_schedule_confirmation_poll(self) -> None:
+        """Schedule one follow-up when regular polling is not already faster."""
+        delay = timedelta(seconds=CONFIRMATION_POLL_INTERVAL)
+        if (
+            self._pending_confirmations
+            and self._cancel_confirmation_poll is None
+            and not self._confirmation_poll_running
+            and (self.update_interval is None or self.update_interval > delay)
+        ):
+            self._cancel_confirmation_poll = async_call_later(
+                self.hass, delay, self._async_confirmation_poll
+            )
+
+    async def _async_confirmation_poll(self, _now: datetime) -> None:
+        """Request fresh telemetry and retry only while a command is pending."""
+        self._cancel_confirmation_poll = None
+        if not self._pending_confirmations:
+            return
+        self._confirmation_poll_running = True
+        try:
+            await self.async_request_refresh()
+        finally:
+            self._confirmation_poll_running = False
+            self._async_schedule_confirmation_poll()
 
     async def _async_update_data(self):
         """Fetch data from OmniLogic."""
