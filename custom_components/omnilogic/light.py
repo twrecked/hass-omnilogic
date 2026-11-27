@@ -18,7 +18,6 @@ V1_SHOW_CLOUD_WHITE = 6
 V2_SHOW_WARM_WHITE = 25
 V2_DEFAULT_SPEED = 4
 V2_DEFAULT_BRIGHTNESS = 2
-LIGHT_OFF_CONFIRMATION_TIMEOUT = 60
 
 
 async def async_setup_entry(
@@ -47,12 +46,6 @@ class OmniLogicLight(OmniLogicOnOffEntity, LightEntity):
         """Initialize a ColorLogic light for its body of water."""
         super().__init__(coordinator, "light", "", "mdi:pool", item_id, "lightState")
         self._address = (int(item_id[1]), int(item_id[3]), int(item_id[-1]))
-
-    def _confirmation_timeout(self, is_on: bool) -> int:
-        """Allow more time for the controller to report the light is off."""
-        if not is_on:
-            return LIGHT_OFF_CONFIRMATION_TIMEOUT
-        return super()._confirmation_timeout(is_on)
 
     async def _async_send_command(self, is_on: bool) -> None:
         """Send the off command or turn on with the generation's white preset."""

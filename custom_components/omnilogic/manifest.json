@@ -16,6 +16,6 @@
   "requirements": [
     "omnilogic==0.4.9"
   ],
-  "version": "0.2.0",
+  "version": "0.2.1",
   "single_config_entry": true
 }

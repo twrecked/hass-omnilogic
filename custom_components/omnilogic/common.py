@@ -15,7 +15,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .coordinator import OmniLogicUpdateCoordinator
 
-COMMAND_CONFIRMATION_TIMEOUT = 30
+TURN_ON_CONFIRMATION_TIMEOUT = 30
+TURN_OFF_CONFIRMATION_TIMEOUT = 60
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -142,6 +143,8 @@ class OmniLogicOnOffEntity(OmniLogicEntity):
     @callback
     def _async_clear_pending_state(self) -> None:
         """Stop holding the accepted state and cancel its expiry timer."""
+        if self._pending_state is not None:
+            self.coordinator.async_set_confirmation_pending(self._item_id, False)
         self._pending_state = None
         if self._cancel_confirmation is not None:
             self._cancel_confirmation()
@@ -158,7 +161,7 @@ class OmniLogicOnOffEntity(OmniLogicEntity):
             self._reported_state(),
         )
         self._cancel_confirmation = None
-        self._pending_state = None
+        self._async_clear_pending_state()
         self.async_write_ha_state()
 
     @callback
@@ -190,12 +193,13 @@ class OmniLogicOnOffEntity(OmniLogicEntity):
                 self._confirmation_timeout(is_on),
                 self._async_confirmation_expired,
             )
+            self.coordinator.async_set_confirmation_pending(self._item_id, True)
             self.async_write_ha_state()
         await self.coordinator.async_request_refresh()
 
     def _confirmation_timeout(self, is_on: bool) -> int:
         """Return the seconds to wait for command confirmation."""
-        return COMMAND_CONFIRMATION_TIMEOUT
+        return TURN_ON_CONFIRMATION_TIMEOUT if is_on else TURN_OFF_CONFIRMATION_TIMEOUT
 
     async def _async_send_command(self, is_on: bool) -> None:
         """Send the device-specific command or raise if it fails."""

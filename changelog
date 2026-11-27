@@ -1,3 +1,8 @@
+0.2.1:
+  Honor the saved polling interval and reload the integration when options change.
+  Fix the Configure dialog on Home Assistant versions with a read-only config entry.
+  Share 10-second follow-up polls across lights and relays while commands await confirmation.
+  Allow 60 seconds for relay turn-off confirmation, matching ColorLogic lights.
 0.2.0:
   Add native on/off light entities for ColorLogic V1 and V2 lights.
   Fix backyard relay addressing and recognize relayState telemetry.
